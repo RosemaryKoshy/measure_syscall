@@ -9,7 +9,7 @@
 #include <time.h>    // clock_gettime, CLOCK_MONOTONIC
 #include <unistd.h>  // read, STDIN_FILENO
 
-#define ITERATIONS 16777216
+#define ITERATIONS 16777216UL
 
 /**
  * Time a repeated 0-byte read() syscall, dividing its duration by ITERATIONS.
@@ -24,7 +24,7 @@ int main() {
         perror("clock_gettime");
         return EXIT_FAILURE;
     }
-    for (ssize_t i = 0; i < ITERATIONS; ++i) {
+    for (size_t i = 0; i < ITERATIONS; ++i) {
         if (read(STDIN_FILENO, NULL, 0)) {
             perror("read");
             return EXIT_FAILURE;
