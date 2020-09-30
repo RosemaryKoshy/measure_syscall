@@ -1,33 +1,22 @@
 /**
  * Homework: System-call latency measurement
  * Talib Pierson
- * 9/15/20
+ * 30 September 2020
  * Measure the duration in nanoseconds of the read() system call.
  */
-#include <libgen.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <unistd.h>
+#include <stdio.h>   // perror(), printf()
+#include <stdlib.h>  // EXIT_FAILURE, EXIT_SUCCESS
+#include <time.h>    // clock_gettime, CLOCK_MONOTONIC
+#include <unistd.h>  // read, STDIN_FILENO
 
-int main(int argc, char *argv[]) {
-    /**
-     * Time a repeated 0-byte read() system call,
-     * int-dividing how long it takes in nanoseconds
-     * by the number of iterations.
-     */
-    if (argc != 2) {
-        printf("Usage: %s ITERATIONS\n", basename(argv[0]));
-        exit(EXIT_FAILURE);
-    }
-
-    const long iterations = strtol(argv[1], NULL, 10);
-    if (iterations < 1) {
-        printf("%s: ITERATIONS must be a positive integer\n",
-               basename(argv[0]));
-        exit(EXIT_FAILURE);
-    }
+/**
+ * Time a repeated 0-byte read() system call,
+ * integer-dividing its duration in nanoseconds
+ * by the number of iterations.
+ * @return  SUCCESS if measurement as desired else FAILURE
+ */
+int main() {
+    const ssize_t iterations = 16777216;
 
     struct timespec initial_time;
     struct timespec final_time;
@@ -35,24 +24,26 @@ int main(int argc, char *argv[]) {
     // take the measurement
     if (clock_gettime(CLOCK_MONOTONIC, &initial_time)) {
         perror("clock_gettime");
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
-    for (long i = 0; i < iterations; ++i) {
+    for (ssize_t i = 0; i < iterations; ++i) {
         if (read(STDIN_FILENO, NULL, 0)) {
             perror("read");
-            exit(EXIT_FAILURE);
+            return EXIT_FAILURE;
         }
     }
     if (clock_gettime(CLOCK_MONOTONIC, &final_time)) {
         perror("clock_gettime");
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     // determine and display the measurement
     printf("Duration of read syscall: %li ns\n",
-           (1000000000 * (final_time.tv_sec - initial_time.tv_sec)
-            + final_time.tv_nsec - initial_time.tv_nsec)
-           / iterations);
+           (1000000000 * (final_time.tv_sec - initial_time.tv_sec) +
+            final_time.tv_nsec - initial_time.tv_nsec) /
+           iterations);
+
+    return EXIT_SUCCESS;
 }
 
 /**
