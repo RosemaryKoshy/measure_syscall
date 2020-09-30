@@ -9,15 +9,13 @@
 #include <time.h>    // clock_gettime, CLOCK_MONOTONIC
 #include <unistd.h>  // read, STDIN_FILENO
 
+#define ITERATIONS 16777216
+
 /**
- * Time a repeated 0-byte read() system call,
- * integer-dividing its duration in nanoseconds
- * by the number of iterations.
+ * Time a repeated 0-byte read() syscall, dividing its duration by ITERATIONS.
  * @return  SUCCESS if measurement as desired else FAILURE
  */
 int main() {
-    const ssize_t iterations = 16777216;
-
     struct timespec initial_time;
     struct timespec final_time;
 
@@ -26,7 +24,7 @@ int main() {
         perror("clock_gettime");
         return EXIT_FAILURE;
     }
-    for (ssize_t i = 0; i < iterations; ++i) {
+    for (ssize_t i = 0; i < ITERATIONS; ++i) {
         if (read(STDIN_FILENO, NULL, 0)) {
             perror("read");
             return EXIT_FAILURE;
@@ -38,10 +36,10 @@ int main() {
     }
 
     // determine and display the measurement
-    printf("Duration of read syscall: %li ns\n",
-           (1000000000 * (final_time.tv_sec - initial_time.tv_sec) +
-            final_time.tv_nsec - initial_time.tv_nsec) /
-           iterations);
+    printf("Duration of read syscall: %f ns\n",
+           (double) (1000000000 * (final_time.tv_sec - initial_time.tv_sec) +
+                     final_time.tv_nsec - initial_time.tv_nsec) /
+           (double) ITERATIONS);
 
     return EXIT_SUCCESS;
 }
